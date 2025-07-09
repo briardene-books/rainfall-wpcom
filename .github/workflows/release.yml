@@ -1,0 +1,36 @@
+name: Release Theme Zip
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up zip
+        run: sudo apt-get update && sudo apt-get install -y zip
+
+      - name: Create zip file
+        run: |
+          zip -r rainfall-wpcom.zip . \
+            -x '*.git*' '*.github*' 'rainfall-wpcom.zip'
+
+      - name: Get version
+        id: get_version
+        run: |
+          VERSION=$(date +"%Y.%m.%d.%H%M%S")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: Rainfall WPCom Release ${{ steps.get_version.outputs.version }}
+          files: rainfall-wpcom.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
